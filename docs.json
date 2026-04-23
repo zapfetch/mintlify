@@ -1,0 +1,108 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "ZapFetch",
+  "description": "APAC-native web scraping API for AI agents — scrape, search, crawl, extract. Firecrawl-compatible.",
+  "colors": {
+    "primary": "#F59E0B",
+    "light": "#FBBF24",
+    "dark": "#D97706"
+  },
+  "favicon": "/favicon.svg",
+  "icons": { "library": "lucide" },
+  "navigation": {
+    "languages": [
+      {
+        "language": "en",
+        "tabs": [
+          {
+            "tab": "Documentation",
+            "groups": [
+              {
+                "group": "Get started",
+                "icon": "rocket",
+                "pages": [
+                  "en/index",
+                  {
+                    "group": "Quickstart",
+                    "pages": [
+                      "en/quickstart/curl",
+                      "en/quickstart/python",
+                      "en/quickstart/nodejs"
+                    ]
+                  },
+                  "en/migrate-from-firecrawl"
+                ]
+              },
+              {
+                "group": "Reference",
+                "icon": "book-open",
+                "pages": ["en/billing", "en/rate-limits", "en/errors"]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "language": "zh",
+        "tabs": [
+          {
+            "tab": "文档",
+            "groups": [
+              {
+                "group": "快速开始",
+                "icon": "rocket",
+                "pages": ["zh/index", "zh/migrate-from-firecrawl"]
+              },
+              {
+                "group": "参考",
+                "icon": "book-open",
+                "pages": ["zh/billing"]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "API Reference",
+          "href": "https://api.zapfetch.com",
+          "icon": "code"
+        },
+        {
+          "anchor": "Console",
+          "href": "https://console.zapfetch.com",
+          "icon": "gauge"
+        }
+      ]
+    }
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "navbar": {
+    "links": [
+      { "label": "Console", "href": "https://console.zapfetch.com" }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Start free",
+      "href": "https://console.zapfetch.com/api/logto/sign-in"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/zapfetch",
+      "x": "https://x.com/zapfetch"
+    }
+  },
+  "seo": {
+    "metatags": {
+      "og:site_name": "ZapFetch Documentation"
+    },
+    "indexing": "navigable"
+  }
+}

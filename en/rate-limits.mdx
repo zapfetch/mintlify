@@ -1,0 +1,61 @@
+---
+title: "Rate limits"
+description: "Per-plan request limits, 429 responses, and recommended backoff."
+---
+
+ZapFetch applies per-API-key rate limits to protect the platform and your
+own credit balance from runaway loops. Limits are enforced globally across
+all ZapFetch endpoints.
+
+## Per-plan limits
+
+> These numbers are indicative. The authoritative values live in the
+> [Console](/dashboard/billing) under your current plan.
+
+| Plan       | `/scrape`, `/search`, `/map`, `/extract` (req/sec) | `/crawl` (req/sec) | Concurrent crawls |
+| ---------- | :-------------------------------------------------: | :-----------------: | :-----------------: |
+| Free       | 5                                                   | 2                   | 2                   |
+| Starter    | 50                                                  | 10                  | 10                  |
+| Pro        | 200                                                 | 30                  | 20                  |
+| Scale      | 500                                                 | 75                  | 50                  |
+| Business   | 1,000                                               | 150                 | 100                 |
+| Enterprise | custom                                              | custom              | custom              |
+
+`/v1/crawl` has a tighter per-second budget because each call can dispatch
+hundreds of background page fetches. Concurrent crawls cap the number of
+`/v1/crawl` jobs *in-flight* for a single key; completed or cancelled
+crawls don't count.
+
+## 429 response shape
+
+When you exceed a limit ZapFetch returns `429 Too Many Requests` with a
+`Retry-After` header (seconds):
+
+```http
+HTTP/1.1 429 Too Many Requests
+Retry-After: 12
+Content-Type: application/json
+
+{
+  "success": false,
+  "error": "rate_limited",
+  "message": "You have exceeded 50 requests/second for the Starter plan."
+}
+```
+
+## Recommended client-side behavior
+
+- Honor `Retry-After` literally — don't retry before the header says you can.
+- On repeated `429`s, fall back to exponential backoff with jitter:
+  `sleep(min(cap, base * 2^attempt) + random_jitter)`.
+- Batch work where possible: `/v1/crawl` accepts a `limit` and `maxDepth`
+  so you do not have to orchestrate per-page `/v1/scrape` calls yourself.
+- Pool connections per-process — a burst of "one-shot" calls hits rate
+  limits faster than a steady stream with keep-alive.
+
+## Requesting higher limits
+
+Pro customers with bursty workloads can request a higher per-minute ceiling
+by emailing support; we review case-by-case. Rate limits never exceed what
+your credit balance can actually support — this is a safety net, not a
+bottleneck for normal use.

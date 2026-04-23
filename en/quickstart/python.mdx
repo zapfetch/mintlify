@@ -1,0 +1,84 @@
+---
+title: "Quickstart: Python"
+description: "Use the official Firecrawl Python SDK against ZapFetch."
+---
+
+The Firecrawl Python SDK works against ZapFetch with two changes: swap the
+`api_url` and use your ZapFetch API key.
+
+## Install
+
+```bash
+pip install firecrawl-py
+```
+
+## Initialize the client
+
+```python
+from firecrawl import FirecrawlApp
+
+app = FirecrawlApp(
+    api_key="YOUR_ZAPFETCH_API_KEY",
+    api_url="https://api.zapfetch.com",
+)
+```
+
+## Scrape a single page
+
+```python
+result = app.scrape_url(
+    "https://example.com",
+    params={"formats": ["markdown"]},
+)
+print(result["markdown"])
+```
+
+## Crawl a site
+
+```python
+# Blocking helper — waits for the crawl to finish and returns all pages.
+job = app.crawl_url(
+    "https://docs.example.com",
+    params={"limit": 50},
+    wait_until_done=True,
+)
+
+for page in job["data"]:
+    print(page["metadata"]["sourceURL"])
+```
+
+## Extract structured data
+
+```python
+schema = {
+    "type": "object",
+    "properties": {
+        "stories": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "title":  {"type": "string"},
+                    "points": {"type": "integer"},
+                    "author": {"type": "string"},
+                },
+            },
+        },
+    },
+}
+
+data = app.extract(
+    urls=["https://news.ycombinator.com"],
+    params={
+        "prompt": "Top 5 stories with points and author.",
+        "schema": schema,
+    },
+)
+print(data)
+```
+
+## Check credit usage
+
+Every response includes a usage chunk in the metadata — the same object
+the Firecrawl SDK already surfaces — so existing budget and alerting logic
+keeps working unchanged.

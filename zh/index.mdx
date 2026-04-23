@@ -1,0 +1,39 @@
+---
+title: "ZapFetch 文档"
+description: "兼容 Firecrawl 的 Web 数据 API，USD 计费，按用量结算。"
+---
+
+**ZapFetch** 是一套用于网页抓取、爬取、搜索与结构化抽取的 API，按用量
+计费、美元结算。注册、拿 API Key、发出第一个成功请求——整个流程几
+分钟内完成，无需信用卡。
+
+已经在用 [Firecrawl](https://firecrawl.dev) SDK？代码无需改动即可切过来，
+详见[从 Firecrawl 迁移](/zh/migrate-from-firecrawl)。
+
+## 快速开始
+
+| 指南                                              | 适合谁                                 |
+| ------------------------------------------------- | -------------------------------------- |
+| [快速开始（curl）](/zh/quickstart/curl)      | 一分钟跑通第一个 scrape / crawl 请求。 |
+| [从 Firecrawl 迁移](/zh/migrate-from-firecrawl) | 十分钟迁完现有 Firecrawl 项目。        |
+| [API 参考](https://api.zapfetch.com)               | 完整的端点、Schema 和限流说明。        |
+
+> 注：目前中文文档仅覆盖首页和迁移指南，其余章节会陆续翻译。在此之前可以
+> 参考英文版，结构和路径保持一致：把 URL 中的 `/zh/` 换成 `/en/` 即可。
+
+## 为什么选 ZapFetch？
+
+- **零门槛开始。** Free 档每月包含 1,500 credits，无需信用卡。大多数用户
+  从注册到发出第一个 API 调用不超过几分钟。
+- **按用量计费，美元结算。** 每次响应都会携带剩余额度字段，在 Console
+  充值即可使用，无最低消费、无长期合同。
+- **限流透明可预测。** 超限时返回 `429` + `Retry-After`，客户端退避逻辑
+  直接可用。
+- **兼容所有 Firecrawl 客户端。** API 表面遵循 Firecrawl 规范（`/v1/*`
+  和 `/v2/*` 均支持），现有 SDK、CLI、Agent 工具无需修改即可使用。
+
+## 下一步
+
+- 打开 [Console](/dashboard) 注册账号、创建 API Key、查看用量和账单。
+- 已经用 Firecrawl？读[从 Firecrawl 迁移](/zh/migrate-from-firecrawl)，
+  十分钟完成切换。

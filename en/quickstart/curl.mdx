@@ -1,0 +1,109 @@
+---
+title: "Quickstart: curl"
+description: "Hit every ZapFetch endpoint with curl in 60 seconds."
+---
+
+Every example uses your UUID-style ZapFetch API key and talks to
+`https://api.zapfetch.com`.
+
+```bash
+export ZAPFETCH_KEY="YOUR_ZAPFETCH_API_KEY"
+```
+
+## Scrape a single URL
+
+Fetch a single page and get back clean markdown or structured content.
+
+```bash
+curl -X POST https://api.zapfetch.com/v1/scrape \
+  -H "Authorization: Bearer $ZAPFETCH_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://example.com",
+    "formats": ["markdown"]
+  }'
+```
+
+## Crawl a whole site
+
+Start a crawl, then poll for completion. Crawls are billed per page fetched.
+
+```bash
+# Kick off the crawl — returns a job id.
+curl -X POST https://api.zapfetch.com/v1/crawl \
+  -H "Authorization: Bearer $ZAPFETCH_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://docs.example.com",
+    "limit": 50
+  }'
+
+# Check status and retrieve pages.
+curl https://api.zapfetch.com/v1/crawl/JOB_ID \
+  -H "Authorization: Bearer $ZAPFETCH_KEY"
+```
+
+## Search the web
+
+Run a web search and optionally scrape each result in the same call.
+
+```bash
+curl -X POST https://api.zapfetch.com/v1/search \
+  -H "Authorization: Bearer $ZAPFETCH_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "best vector databases 2026",
+    "limit": 5,
+    "scrapeOptions": { "formats": ["markdown"] }
+  }'
+```
+
+## Map a site
+
+Discover every reachable URL on a domain without fetching the content.
+
+```bash
+curl -X POST https://api.zapfetch.com/v1/map \
+  -H "Authorization: Bearer $ZAPFETCH_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://docs.example.com",
+    "limit": 500
+  }'
+```
+
+## Extract structured data
+
+Let an LLM pull typed fields straight out of one or more pages. Give it a
+JSON Schema and ZapFetch handles fetching, parsing, and inference.
+
+```bash
+curl -X POST https://api.zapfetch.com/v1/extract \
+  -H "Authorization: Bearer $ZAPFETCH_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "urls": ["https://news.ycombinator.com"],
+    "prompt": "Extract the top 5 story titles with their points and author.",
+    "schema": {
+      "type": "object",
+      "properties": {
+        "stories": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "title":  { "type": "string" },
+              "points": { "type": "integer" },
+              "author": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }'
+```
+
+## Next
+
+- Automate from [Python](/en/quickstart/python) or [Node.js](/en/quickstart/nodejs).
+- Check your current plan and usage in the [Console](/dashboard).

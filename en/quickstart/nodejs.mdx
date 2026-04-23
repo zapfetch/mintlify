@@ -1,0 +1,85 @@
+---
+title: "Quickstart: Node.js"
+description: "Use the official Firecrawl JS SDK against ZapFetch."
+---
+
+The Firecrawl JS SDK is ZapFetch-ready out of the box — just point it at
+the ZapFetch endpoint and use your ZapFetch API key.
+
+## Install
+
+```bash
+npm install @mendable/firecrawl-js
+```
+
+## Initialize the client
+
+```ts
+import FirecrawlApp from "@mendable/firecrawl-js";
+
+const app = new FirecrawlApp({
+  apiKey: "YOUR_ZAPFETCH_API_KEY",
+  apiUrl: "https://api.zapfetch.com",
+});
+```
+
+## Scrape a single page
+
+```ts
+const result = await app.scrapeUrl("https://example.com", {
+  formats: ["markdown"],
+});
+
+console.log(result.markdown);
+```
+
+## Crawl a site
+
+```ts
+const job = await app.crawlUrl(
+  "https://docs.example.com",
+  { limit: 50 },
+  /* waitUntilDone */ true,
+);
+
+for (const page of job.data ?? []) {
+  console.log(page.metadata?.sourceURL);
+}
+```
+
+## Extract structured data
+
+```ts
+const schema = {
+  type: "object",
+  properties: {
+    stories: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          title:  { type: "string" },
+          points: { type: "integer" },
+          author: { type: "string" },
+        },
+      },
+    },
+  },
+} as const;
+
+const data = await app.extract(
+  ["https://news.ycombinator.com"],
+  {
+    prompt: "Top 5 stories with points and author.",
+    schema,
+  },
+);
+
+console.log(data);
+```
+
+## Handling rate limits
+
+ZapFetch returns a standard `429 Too Many Requests` with a `Retry-After`
+header when you exceed your plan's rate limit. The SDK surfaces this as a
+thrown error — wrap calls in your usual retry / backoff policy.

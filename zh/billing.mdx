@@ -1,0 +1,122 @@
+---
+title: "计费与 Credits"
+description: "Credits 的计算方式、套餐定价,以及额度用完后的行为。"
+---
+
+ZapFetch 按 **credits** 计费,美元结算。**1 个 credit = 1 次成功操作**——
+没有格式乘数、没有结构化提取附加费、失败不计费。
+
+## 一条规则:1 credit = 1 次操作
+
+| 操作                       | 消耗                                   |
+| -------------------------- | -------------------------------------- |
+| `POST /v1/scrape`          | 每次成功抓取 1 credit                  |
+| `POST /v1/search`          | 每次调用 1 credit(与返回结果数无关)    |
+| `POST /v1/map`             | 每次调用 1 credit                      |
+| `POST /v1/crawl`           | 每页成功抓取 1 credit                  |
+| `POST /v1/extract`         | 每次调用 1 credit                      |
+
+一次 `scrape` 同时要 Markdown **和** HTML **和** Screenshot **和** 结构化
+提取 JSON,依然是 **1 credit**。同一个 URL、一个价格,格式随便挑。
+
+### 失败免费
+
+任何没把你想要的内容返回回来的请求都不计费:
+
+- HTTP `4xx` / `5xx` 响应
+- 超时
+- DNS 失败
+- `robots.txt` 拒绝
+- 部分抓取失败:只有返回 `2xx` 的页面计费
+
+## 套餐
+
+> 下表是 **Launch 首年**定价(至 2027-04-20)。当前订阅的权威数据在
+> [Billing 页面](/dashboard/billing)。
+
+| 套餐        | 月费(Launch)        | Credits / 月 | 并发 | 适用场景                      |
+| ----------- | ------------------- | ------------ | ---- | ----------------------------- |
+| Free        | $0                  | 1,500        | 2    | 原型、评估                    |
+| Starter     | **$5 / 月**         | 5,000        | 10   | Side project、个人开发者      |
+| Pro         | **$12 / 月**        | 75,000       | 20   | 早期 Agent 团队               |
+| Scale       | **$167 / 月**       | 500,000      | 50   | 生产级 Agent / RAG            |
+| Business    | **$749 / 月**       | 2,500,000    | 100  | 中型企业                      |
+| Enterprise  | 起 **$1,250 / 月**  | 定制         | 定制 | 年合同、SLA、ZDR、专属 IP 池  |
+
+Credits 按月续期,不滚存。需要大量滚存额度可以走 Enterprise 合同。
+
+### Launch 定价与之后的走向
+
+- **Starter / Pro** 的 Launch 价($5 / $12)对 **2027-04-20** 之前签约的
+  用户**永久锁定**——只要订阅不取消,价格不变。
+- **Starter / Pro** 在 2027-04-20 之后的新用户按正式期价格结算
+  (分别为 **$10** 和 **$25**),依然比 Firecrawl 同层便宜。
+- **Scale / Business / Enterprise** 价格**永久不变**。没有"促销期结束"
+  这回事——这就是正式价。
+
+### 年付与计划折扣
+
+| 计划                              | 折扣                         |
+| --------------------------------- | ---------------------------- |
+| 年付预付                          | 任何付费套餐 **85 折**       |
+| OSS 维护者(≥500 ★ 项目)         | Pro 免费 12 个月             |
+| 学生(`.edu` 邮箱)               | Pro 免费 12 个月             |
+| 注册非营利组织                    | 年费 **5 折**                |
+
+发邮件到 `support@zapfetch.com` 附上证明,我们会帮你开通。
+
+## 响应中的 Credit 消耗
+
+每个成功响应都带一个 credit-usage 字段——shape 与 Firecrawl 一致,现有
+读取剩余 credits 的客户端代码无需改动。
+
+```json
+{
+  "success": true,
+  "data": { /* ... */ },
+  "creditsUsed": 1,
+  "remainingCredits": 4823
+}
+```
+
+`remainingCredits` 会缓存约 10 分钟以保证热路径速度,所以短时间内大量
+请求可能会看到余额按批次下降,而不是严格一请求一扣减。
+
+## Credits 用完会怎样
+
+- 当 `remainingCredits` 为零,后续请求返回 **`402 Payment Required`**,
+  错误消息指向 [/dashboard/billing](/dashboard/billing)。
+- 进行中的 crawl 会完成已派发的页面,但不会再调度新页面。
+- 不会悄悄超额。除非你主动开启 overage,ZapFetch 不会在余额耗尽后
+  继续计费——不会有意外账单。
+
+### 可选 Overage(Starter 及以上)
+
+如果你宁愿超额继续服务、也不想收到 `402`,可以在 Billing 里开启
+overage。按每 1,000 个超额 credit 计费,单价随套餐变大而变便宜。
+Soft cap 触发邮件告警;Hard cap(= Soft × 2)停止计费,防止失控
+循环把你的信用卡刷爆。
+
+Free 套餐不提供 overage——流量超出直接返 `429`,等下个月。
+
+## Add-ons(可选)
+
+Add-ons 是独立 SKU,可叠加在 Pro 及以上任何套餐上。
+
+- **APAC 住宅代理** —— 日 / 韩 / 中 / 新 / 台住宅 IP,绕过封锁数据
+  中心段的站点(乐天、Naver、1688 等)
+- **CJK 提取模型** —— 针对中日韩电商和新闻训练的专用提取器
+- **Zero Data Retention** —— 原始内容 7 秒内清空,不落盘。Business 起。
+- **99.9% Uptime SLA** —— 合同约定的服务信用条款,宕机会退款。
+  Business 起。
+- **Priority Queue / 专属 IP 池** —— 独立队列和 IP 池,用于低延迟
+  或高流量场景。
+
+详细价格见 [pricing 页面](/pricing),或发邮件到 `sales@zapfetch.com`
+询价。
+
+## 查看用量
+
+Console 的 **Usage** 页按端点展示 credits 的时间曲线,是对账的权威
+数据源。Stripe 负责发票、税务和收据——所有内容在 Stripe Customer
+Portal 里,从 Billing 页一键直达。

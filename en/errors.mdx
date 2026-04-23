@@ -1,0 +1,91 @@
+---
+title: "Errors and troubleshooting"
+description: "Common HTTP status codes, example error bodies, and what to do about them."
+---
+
+All ZapFetch errors follow a consistent envelope:
+
+```json
+{
+  "success": false,
+  "error": "short_machine_readable_code",
+  "message": "Human-readable explanation of what went wrong."
+}
+```
+
+The HTTP status code is the primary signal — the `error` field disambiguates
+between distinct failure modes that share a status.
+
+## 401 — Unauthorized
+
+```json
+{ "success": false, "error": "unauthorized", "message": "Invalid API key." }
+```
+
+**Cause:** The `Authorization: Bearer <ZapFetch API key>` header is missing,
+malformed, or references a key that doesn't exist / has been revoked.
+
+**Fix:**
+- Confirm the key is the UUID-style ZapFetch key copied from
+  **Dashboard → API keys** (not a Firecrawl Cloud key).
+- Check it hasn't been revoked in **Dashboard → API keys**.
+- Make sure you're hitting `api.zapfetch.com`, not a stale hostname.
+
+## 402 — Payment Required
+
+```json
+{
+  "success": false,
+  "error": "insufficient_credits",
+  "message": "Your credit balance is 0. Upgrade or top up."
+}
+```
+
+**Cause:** Your plan's monthly credits are exhausted.
+
+**Fix:** Top up or upgrade from the [Billing page](/dashboard/billing).
+In-flight crawls already charged against credits will still complete their
+dispatched pages; new requests are blocked until you replenish.
+
+## 404 — Not Found
+
+```json
+{ "success": false, "error": "not_found", "message": "Crawl job abc123 not found." }
+```
+
+**Cause:** The resource (crawl job, etc.) doesn't exist on this account, or
+has been garbage-collected (crawl results are retained for 30 days).
+
+**Fix:** Confirm the id and owner; re-run the crawl if results have expired.
+
+## 429 — Too Many Requests
+
+See the full treatment in [Rate limits](/en/rate-limits). Always honor
+the `Retry-After` response header.
+
+## 500 — Internal Server Error
+
+```json
+{ "success": false, "error": "internal_error", "message": "Unexpected failure. Please retry." }
+```
+
+**Cause:** A ZapFetch-side issue, or a transient upstream failure when
+fetching the target page.
+
+**Fix:**
+- Retry once with backoff; most 500s are transient.
+- If it persists for a specific URL, the target site may be actively
+  blocking scrapers — try enabling `stealth` / alternate user agents on
+  the request.
+- If a whole endpoint is consistently failing, check
+  [status.zapfetch.com](https://status.zapfetch.com) and report it.
+
+## Debugging tips
+
+- **Log the full response envelope** — `error` and `message` almost always
+  tell you exactly what's wrong. Treating every failure as a generic
+  network error hides the real cause.
+- **Reproduce with curl first.** If curl fails, it's a backend/key issue;
+  if only your SDK fails, it's a client-side integration issue.
+- **Check the Console's Usage page.** Sudden drops in successful calls are
+  often credit or rate-limit issues rather than outright bugs.

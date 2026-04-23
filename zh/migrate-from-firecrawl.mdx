@@ -1,0 +1,105 @@
+---
+title: "10 分钟从 Firecrawl Cloud 迁移到 ZapFetch"
+description: "换域名、换 Key、上线——三步迁移指南，针对 Firecrawl Cloud 老用户。"
+---
+
+如果你现在跑在 Firecrawl Cloud（`api.firecrawl.dev`）上，迁移到 ZapFetch
+只需要改三个地方，**不需要重构任何业务代码**。ZapFetch 与 Firecrawl 的
+`/v1/*` 和 `/v2/*` 端点做到了字节级兼容。
+
+## 为什么迁？
+
+- **美元计费，按用量结算。** 按 credit 计量，无起订量、无承诺消费，用
+  多少算多少；剩余额度会写在每次响应里。
+- **SDK、Schema 都不变。** 继续用官方的 `firecrawl-py` 和
+  `@mendable/firecrawl-js`，不锁定厂商，也不需要学新 SDK。
+- **v1 与 v2 端点都兼容。** 不论你现有 SDK 用的是哪个版本，直接切过来
+  就能跑。
+
+## 第一步 — 拿到 ZapFetch API Key
+
+1. 用 GitHub / Google 账号或邮箱登录 [ZapFetch Console](/dashboard)。
+2. 进入 **Dashboard → API Keys**。
+3. 点 **Create key**，复制生成的 UUID API Key。Key 只显示一次，请妥善
+   保管。
+
+> ZapFetch 当前生成的是 UUID API Key，不是 `fc-` 前缀的 Firecrawl Cloud
+> Key。如果你的现有配置强制校验 `fc-` 前缀，请先放宽这个校验再切流量。
+
+## 第二步 — 把 Base URL 指向 ZapFetch
+
+把 SDK / HTTP 客户端里的 Firecrawl 域名替换成 `https://api.zapfetch.com`。
+
+### curl
+
+```diff
+- curl -X POST https://api.firecrawl.dev/v1/scrape \
++ curl -X POST https://api.zapfetch.com/v1/scrape \
+    -H "Authorization: Bearer YOUR_ZAPFETCH_API_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{ "url": "https://example.com", "formats": ["markdown"] }'
+```
+
+### Python
+
+```diff
+  from firecrawl import FirecrawlApp
+
+- app = FirecrawlApp(api_key="YOUR_ZAPFETCH_API_KEY")
++ app = FirecrawlApp(
++     api_key="YOUR_ZAPFETCH_API_KEY",
++     api_url="https://api.zapfetch.com",
++ )
+```
+
+### Node.js
+
+```diff
+  import FirecrawlApp from "@mendable/firecrawl-js";
+
+- const app = new FirecrawlApp({ apiKey: "YOUR_ZAPFETCH_API_KEY" });
++ const app = new FirecrawlApp({
++   apiKey: "YOUR_ZAPFETCH_API_KEY",
++   apiUrl: "https://api.zapfetch.com",
++ });
+```
+
+## 第三步 — 换成 ZapFetch 的 Key
+
+把环境变量里的 Firecrawl Key 替换成第一步拿到的 ZapFetch Key：
+
+```diff
+- FIRECRAWL_API_KEY=firecrawl-key-here
++ FIRECRAWL_API_KEY=zapfetch-uuid-key-here
+```
+
+## 冒烟测试
+
+跑一次 scrape 验证迁移成功：
+
+```bash
+curl -X POST https://api.zapfetch.com/v1/scrape \
+  -H "Authorization: Bearer $FIRECRAWL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "url": "https://example.com", "formats": ["markdown"] }'
+```
+
+预期：HTTP 200 + `data.markdown` + 剩余额度信息。
+
+## 常见问题
+
+### 两边的端点一一对应吗？
+
+对应。`/v1/*` 和 `/v2/*` 全部支持——`scrape`、`crawl`、`search`、
+`map`、`extract` 端点请求体和响应体结构一致。如果发现行为差异，当 Bug
+反馈即可。
+
+### 价格和限流？
+
+- 计费：见 Console 里的 Billing 页面，美元结算。
+- 限流：见英文文档的 [Rate limits](/en/rate-limits)，按计划不同有
+  每分钟请求上限，超限返回 `429 + Retry-After`。
+
+### 可以两边并行跑吗？
+
+可以。两个 Key 互不影响，可以按流量比例逐步切过来再下线 Firecrawl。

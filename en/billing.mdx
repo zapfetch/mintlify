@@ -1,0 +1,138 @@
+---
+title: "Billing and credits"
+description: "How credits work, how plans are priced, and what happens when you run out."
+---
+
+ZapFetch is billed in **credits**, in USD. One credit equals one successful
+operation — no multipliers for output formats, no premium fees for
+extraction, and no charge for failures.
+
+## The one rule: 1 credit = 1 operation
+
+| Operation                         | Cost                                        |
+| --------------------------------- | ------------------------------------------- |
+| `POST /v1/scrape`                 | 1 credit per successful scrape              |
+| `POST /v1/search`                 | 1 credit per call (regardless of results)   |
+| `POST /v1/map`                    | 1 credit per call                           |
+| `POST /v1/crawl`                  | 1 credit per page fetched                   |
+| `POST /v1/extract`                | 1 credit per call                           |
+
+A single `scrape` returning Markdown **and** HTML **and** a screenshot
+**and** a structured-extract JSON is still **1 credit**. Same URL, same
+price, whatever you ask for.
+
+### Failures are free
+
+Anything that didn't return the content you wanted doesn't cost a credit:
+
+- HTTP `4xx` / `5xx` responses
+- Timeouts
+- DNS failures
+- `robots.txt` denials
+- Partial crawls: only pages that returned `2xx` count
+
+## Plans
+
+> Pricing below reflects **Launch Year 1** rates (through 2027-04-20).
+> The source of truth for your current subscription is the
+> [Billing page](/dashboard/billing).
+
+| Plan        | Price (Launch)     | Credits / mo | Concurrency | Best for                        |
+| ----------- | ------------------ | ------------ | ----------- | ------------------------------- |
+| Free        | $0                 | 1,500        | 2           | Prototyping, evaluation         |
+| Starter     | **$5 / mo**        | 5,000        | 10          | Side projects, solo devs        |
+| Pro         | **$12 / mo**       | 75,000       | 20          | Early-stage agent teams         |
+| Scale       | **$167 / mo**      | 500,000      | 50          | Production agents, RAG stacks   |
+| Business    | **$749 / mo**      | 2,500,000    | 100         | Mid-market workloads            |
+| Enterprise  | from **$1,250 / mo** | custom     | custom      | Annual, SLA, ZDR, dedicated IPs |
+
+Credits reset monthly and do not roll over. If you need large volumes of
+rollover credits, talk to us about an Enterprise contract.
+
+### Launch pricing and what comes after
+
+- **Starter / Pro** Launch prices ($5 / $12) are locked in for users who
+  sign up on or before **2027-04-20** — for as long as you keep the
+  subscription active.
+- **Starter / Pro** new signups after 2027-04-20 are billed at the
+  standard rate (**$10** and **$25** respectively). Still cheaper than
+  the nearest comparable plan on Firecrawl.
+- **Scale / Business / Enterprise** prices are **permanent**. No
+  ramp-up, no "promo period ended" surprises — these are the published
+  rates going forward.
+
+### Annual and program discounts
+
+| Program                       | Discount                          |
+| ----------------------------- | --------------------------------- |
+| Annual prepay                 | 15% off any paid plan             |
+| OSS maintainers (≥500 ★ repo) | Pro free for 12 months            |
+| Students (`.edu` email)       | Pro free for 12 months            |
+| Registered nonprofits         | 50% off annual                    |
+
+Email `support@zapfetch.com` with proof and we'll apply it.
+
+## Credit usage in responses
+
+Every successful response carries a credit-usage chunk — the same shape
+Firecrawl returns, so existing client code that reads remaining credits
+works unchanged.
+
+```json
+{
+  "success": true,
+  "data": { /* ... */ },
+  "creditsUsed": 1,
+  "remainingCredits": 4823
+}
+```
+
+`remainingCredits` is cached for ~10 minutes to keep hot paths fast, so a
+burst of requests may see the count tick down in batches rather than
+strictly one-by-one.
+
+## What happens when you run out
+
+- Once `remainingCredits` hits zero, subsequent requests return
+  **`402 Payment Required`** with a message pointing to
+  [/dashboard/billing](/dashboard/billing).
+- In-flight crawls finish the pages already dispatched; no new pages are
+  scheduled once the balance is exhausted.
+- No silent overage. You'll never get a surprise bill — ZapFetch refuses
+  to run above your cap unless you've explicitly opted into overage.
+
+### Opt-in overage (Starter and up)
+
+If you'd rather keep serving traffic past the cap than return `402`, turn
+on overage in Billing. You'll be billed per 1,000 extra credits at a
+flat rate that scales with your plan (cheaper per credit as the plan gets
+larger). A soft cap triggers a warning email; a hard cap (2× soft)
+pauses billing so a runaway loop can't drain your card.
+
+Free plan has no overage — runaway traffic hits `429` until the next
+month.
+
+## Add-ons (optional)
+
+Add-ons are separate SKUs; they stack on top of any plan from Pro up.
+
+- **APAC Residential Proxy** — JP / KR / CN / SG / TW residential IPs
+  for sites that block datacenter ranges (Rakuten, Naver, 1688, etc.)
+- **CJK Extract Model** — Pretrained extractor for Chinese / Japanese /
+  Korean e-commerce and news
+- **Zero Data Retention** — Raw content is dropped within 7 seconds,
+  never written to disk. Business+.
+- **99.9% Uptime SLA** — Contractual service credits on downtime.
+  Business+.
+- **Priority Queue / Dedicated IP Pool** — Isolated queues and IP pools
+  for latency-sensitive or high-volume workloads.
+
+See the [pricing page](/pricing) for add-on rates, or email
+`sales@zapfetch.com` for a quote.
+
+## Tracking usage
+
+The Console's **Usage** page shows per-endpoint credits over time and is
+the authoritative source for billing reconciliation. Stripe handles
+invoices, tax, and receipts; everything lives in your Stripe Customer
+Portal, one click from the Billing page.

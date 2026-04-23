@@ -1,0 +1,14 @@
+# Mintlify local dev
+.mintlify/
+node_modules/
+
+# Editor
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+
+# OMC local state
+.omc/

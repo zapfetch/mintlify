@@ -1,0 +1,115 @@
+---
+title: "Migrating from Firecrawl Cloud to ZapFetch in under 10 minutes"
+description: "Swap base URL, swap the API key, ship. A three-step migration path for Firecrawl Cloud users."
+---
+
+If you're already running against Firecrawl Cloud (`api.firecrawl.dev`),
+migrating to ZapFetch takes three changes and no code refactoring. ZapFetch
+is wire-compatible with both the `/v1/*` and `/v2/*` Firecrawl endpoints.
+
+## Why migrate?
+
+- **USD billing, metered by usage.** No commits, no minimums, no surprise
+  overages; every response tells you how many credits remain.
+- **Same SDKs, same schemas.** You keep using `firecrawl-py` and
+  `@mendable/firecrawl-js`. No vendor-specific client, no lock-in.
+- **Both v1 and v2 endpoints supported.** Whichever version your current
+  Firecrawl SDK talks, ZapFetch accepts it — no pinning required.
+
+## Step 1 — Get a ZapFetch API key
+
+1. Sign in to the [ZapFetch Console](/dashboard) with GitHub, Google, or
+   email.
+2. Open **Dashboard → API keys**.
+3. Click **Create key**. Copy the UUID API key — it's shown once.
+
+ZapFetch API keys are UUID strings, not `fc-` prefixed Firecrawl Cloud keys.
+If your existing config validates the `fc-` prefix, relax that validation
+before switching traffic.
+
+## Step 2 — Swap the base URL
+
+Point your SDK or HTTP client at `https://api.zapfetch.com`.
+
+### curl
+
+```diff
+- curl -X POST https://api.firecrawl.dev/v1/scrape \
++ curl -X POST https://api.zapfetch.com/v1/scrape \
+    -H "Authorization: Bearer YOUR_ZAPFETCH_API_KEY" \
+    -H "Content-Type: application/json" \
+    -d '{ "url": "https://example.com", "formats": ["markdown"] }'
+```
+
+### Python
+
+```diff
+  from firecrawl import FirecrawlApp
+
+- app = FirecrawlApp(api_key="YOUR_ZAPFETCH_API_KEY")
++ app = FirecrawlApp(
++     api_key="YOUR_ZAPFETCH_API_KEY",
++     api_url="https://api.zapfetch.com",
++ )
+```
+
+### Node.js
+
+```diff
+  import FirecrawlApp from "@mendable/firecrawl-js";
+
+- const app = new FirecrawlApp({ apiKey: "YOUR_ZAPFETCH_API_KEY" });
++ const app = new FirecrawlApp({
++   apiKey: "YOUR_ZAPFETCH_API_KEY",
++   apiUrl: "https://api.zapfetch.com",
++ });
+```
+
+## Step 3 — Replace the API key
+
+Swap your Firecrawl key for the ZapFetch key from Step 1. If you store it
+in an environment variable, you're done — only the value changes.
+
+```diff
+- FIRECRAWL_API_KEY=firecrawl-key-here
++ FIRECRAWL_API_KEY=zapfetch-uuid-key-here
+```
+
+## Smoke test
+
+Run one scrape to confirm the migration:
+
+```bash
+curl -X POST https://api.zapfetch.com/v1/scrape \
+  -H "Authorization: Bearer $FIRECRAWL_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ "url": "https://example.com", "formats": ["markdown"] }'
+```
+
+Expected: HTTP 200 with a `data.markdown` field, and a credit-usage chunk
+in the response envelope.
+
+## FAQ
+
+### Feature parity
+
+Both `/v1/*` and `/v2/*` endpoints — `scrape`, `crawl`, `search`, `map`,
+`extract` — are fully supported. Request and response schemas match. If you
+hit a behavioral difference, it is a bug — file it on the Console.
+
+### Pricing
+
+ZapFetch is credit-based in USD. The current plans are outlined on
+[Billing](/en/billing) and on the pricing page. Pricing is subject to
+change; the source of truth is `console.zapfetch.com/dashboard/billing`.
+
+### Rate limits
+
+See [Rate limits](/en/rate-limits). Defaults are generous for Free and
+scale with paid plans. `429` responses include `Retry-After`.
+
+### Can I run both in parallel?
+
+Yes — your Firecrawl Cloud key keeps working on `api.firecrawl.dev`, and
+your ZapFetch key works on `api.zapfetch.com`. Migrate traffic gradually
+if you prefer.
