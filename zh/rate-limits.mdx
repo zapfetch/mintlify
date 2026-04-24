@@ -1,0 +1,56 @@
+---
+title: "限流"
+description: "按套餐的请求限额、429 响应,以及推荐的退避策略。"
+---
+
+ZapFetch 按 API Key 应用限流,保护平台和你自己的 credit 余额不被失控
+循环耗尽。限流在所有 ZapFetch 端点上全局生效。
+
+## 按套餐限额
+
+> 下表是参考值。当前套餐的权威数据在
+> [Console](https://console.zapfetch.com/dashboard/billing)。
+
+| 套餐     | `/scrape`, `/search`, `/map`, `/extract` (req/sec) | `/crawl` (req/sec) | 并发 crawl 数 |
+| -------- | :-------------------------------------------------: | :----------------: | :-----------: |
+| Free     | 5                                                   | 2                  | 2             |
+| Starter  | 50                                                  | 10                 | 10            |
+| Pro      | 200                                                 | 30                 | 20            |
+
+`/v1/crawl` 每秒预算更紧,因为单次调用会在后台派发数百页抓取。"并发
+crawl 数"限制的是单 Key 正在进行中的 `/v1/crawl` 任务;已完成或已取消
+的 crawl 不计入。
+
+## 429 响应格式
+
+超出限额时 ZapFetch 返回 `429 Too Many Requests`,并带 `Retry-After`
+响应头(单位:秒):
+
+```http
+HTTP/1.1 429 Too Many Requests
+Retry-After: 12
+Content-Type: application/json
+
+{
+  "success": false,
+  "error": "rate_limited",
+  "message": "You have exceeded 50 requests/second for the Starter plan."
+}
+```
+
+## 客户端推荐做法
+
+- **严格遵从 `Retry-After`** —— 响应头说多久才能重试,就等多久,不要
+  提前发请求。
+- **反复 429 时**,退指数退避 + 抖动:
+  `sleep(min(cap, base * 2^attempt) + random_jitter)`。
+- **尽量批处理:** `/v1/crawl` 支持 `limit` 和 `maxDepth`,不必自己对每
+  个页面调 `/v1/scrape`。
+- **按进程复用连接** —— 一串"一次性"调用会比有 keep-alive 的稳定
+  流更快撞到限流。
+
+## 申请更高限额
+
+Pro 用户如果有突发性高流量,可以发邮件到 `support@zapfetch.com` 申请
+提高每分钟上限;我们按具体场景审批。限流永远不会超过你的 credit 余额
+能支撑的范围——它是安全兜底,而不是正常使用的瓶颈。
