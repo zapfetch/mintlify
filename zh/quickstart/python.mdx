@@ -1,0 +1,83 @@
+---
+title: "快速开始：Python"
+description: "用 Firecrawl 官方 Python SDK 调用 ZapFetch。"
+---
+
+Firecrawl Python SDK 只需改两处就能对接 ZapFetch：替换 `api_url`，
+并换成 ZapFetch API Key。
+
+## 安装
+
+```bash
+pip install firecrawl-py
+```
+
+## 初始化客户端
+
+```python
+from firecrawl import FirecrawlApp
+
+app = FirecrawlApp(
+    api_key="YOUR_ZAPFETCH_API_KEY",
+    api_url="https://api.zapfetch.com",
+)
+```
+
+## Scrape 单个页面
+
+```python
+result = app.scrape_url(
+    "https://example.com",
+    params={"formats": ["markdown"]},
+)
+print(result["markdown"])
+```
+
+## Crawl 一个站点
+
+```python
+# 阻塞式助手——等 crawl 跑完并返回所有页面。
+job = app.crawl_url(
+    "https://docs.example.com",
+    params={"limit": 50},
+    wait_until_done=True,
+)
+
+for page in job["data"]:
+    print(page["metadata"]["sourceURL"])
+```
+
+## Extract 结构化数据
+
+```python
+schema = {
+    "type": "object",
+    "properties": {
+        "stories": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "title":  {"type": "string"},
+                    "points": {"type": "integer"},
+                    "author": {"type": "string"},
+                },
+            },
+        },
+    },
+}
+
+data = app.extract(
+    urls=["https://news.ycombinator.com"],
+    params={
+        "prompt": "Top 5 stories with points and author.",
+        "schema": schema,
+    },
+)
+print(data)
+```
+
+## 查看 credit 用量
+
+每次响应的 metadata 里都带有用量信息——这就是 Firecrawl SDK 已经在
+暴露的同一个对象，现有的预算控制和告警逻辑无需改动即可继续使用。
