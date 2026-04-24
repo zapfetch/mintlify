@@ -115,5 +115,10 @@
       "og:site_name": "ZapFetch Documentation"
     },
     "indexing": "navigable"
-  }
+  },
+  "redirects": [
+    { "source": "/reference/billing", "destination": "/en/billing", "permanent": true },
+    { "source": "/reference/rate-limits", "destination": "/en/rate-limits", "permanent": true },
+    { "source": "/reference/errors", "destination": "/en/errors", "permanent": true }
+  ]
 }
