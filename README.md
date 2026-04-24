@@ -18,7 +18,7 @@ en/                      English docs
     curl.mdx
     python.mdx
     nodejs.mdx
-zh/                      Chinese docs (3 pages, more coming)
+zh/                      Chinese docs (6 pages; mirrors en/ except errors + rate-limits)
 ja/                      Japanese (placeholder — coming in W7-9)
 ko/                      Korean (placeholder — coming in W7-9)
 images/                  assets referenced from MDX
