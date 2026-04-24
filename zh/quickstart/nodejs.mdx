@@ -1,0 +1,85 @@
+---
+title: "快速开始：Node.js"
+description: "用 Firecrawl 官方 JS SDK 调用 ZapFetch。"
+---
+
+Firecrawl JS SDK 开箱兼容 ZapFetch——把它指向 ZapFetch 端点，
+用 ZapFetch API Key 即可。
+
+## 安装
+
+```bash
+npm install @mendable/firecrawl-js
+```
+
+## 初始化客户端
+
+```ts
+import FirecrawlApp from "@mendable/firecrawl-js";
+
+const app = new FirecrawlApp({
+  apiKey: "YOUR_ZAPFETCH_API_KEY",
+  apiUrl: "https://api.zapfetch.com",
+});
+```
+
+## Scrape 单个页面
+
+```ts
+const result = await app.scrapeUrl("https://example.com", {
+  formats: ["markdown"],
+});
+
+console.log(result.markdown);
+```
+
+## Crawl 一个站点
+
+```ts
+const job = await app.crawlUrl(
+  "https://docs.example.com",
+  { limit: 50 },
+  /* waitUntilDone */ true,
+);
+
+for (const page of job.data ?? []) {
+  console.log(page.metadata?.sourceURL);
+}
+```
+
+## Extract 结构化数据
+
+```ts
+const schema = {
+  type: "object",
+  properties: {
+    stories: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          title:  { type: "string" },
+          points: { type: "integer" },
+          author: { type: "string" },
+        },
+      },
+    },
+  },
+} as const;
+
+const data = await app.extract(
+  ["https://news.ycombinator.com"],
+  {
+    prompt: "Top 5 stories with points and author.",
+    schema,
+  },
+);
+
+console.log(data);
+```
+
+## 处理限流
+
+超出计划的限流时，ZapFetch 返回标准的 `429 Too Many Requests` 并携带
+`Retry-After` 响应头。SDK 会把它抛成异常——按你已有的重试 / 退避策略
+包一层即可。

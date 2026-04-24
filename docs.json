@@ -50,9 +50,20 @@
             "tab": "文档",
             "groups": [
               {
-                "group": "快速开始",
+                "group": "入门",
                 "icon": "rocket",
-                "pages": ["zh/index", "zh/migrate-from-firecrawl"]
+                "pages": [
+                  "zh/index",
+                  {
+                    "group": "快速开始",
+                    "pages": [
+                      "zh/quickstart/curl",
+                      "zh/quickstart/python",
+                      "zh/quickstart/nodejs"
+                    ]
+                  },
+                  "zh/migrate-from-firecrawl"
+                ]
               },
               {
                 "group": "参考",
