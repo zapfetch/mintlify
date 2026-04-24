@@ -17,9 +17,6 @@ all ZapFetch endpoints.
 | Free       | 5                                                   | 2                   | 2                   |
 | Starter    | 50                                                  | 10                  | 10                  |
 | Pro        | 200                                                 | 30                  | 20                  |
-| Scale      | 500                                                 | 75                  | 50                  |
-| Business   | 1,000                                               | 150                 | 100                 |
-| Enterprise | custom                                              | custom              | custom              |
 
 `/v1/crawl` has a tighter per-second budget because each call can dispatch
 hundreds of background page fetches. Concurrent crawls cap the number of
