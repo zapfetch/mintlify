@@ -1,0 +1,27 @@
+name: Mintlify Validate
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  validate:
+    name: Validate Docs
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Check broken links
+        run: npx --yes mintlify@latest broken-links
+
+      - name: Validate docs.json is valid JSON
+        run: node -e "JSON.parse(require('fs').readFileSync('docs.json', 'utf-8')); console.log('docs.json is valid JSON')"
