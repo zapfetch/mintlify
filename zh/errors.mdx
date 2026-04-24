@@ -1,0 +1,87 @@
+---
+title: "错误码与排查"
+description: "常见 HTTP 状态码、错误响应体示例,以及对应的处理方式。"
+---
+
+所有 ZapFetch 错误遵循统一的响应信封:
+
+```json
+{
+  "success": false,
+  "error": "short_machine_readable_code",
+  "message": "Human-readable explanation of what went wrong."
+}
+```
+
+HTTP 状态码是主要信号——`error` 字段用来区分同一状态码下的不同失败模式。
+
+## 401 — Unauthorized
+
+```json
+{ "success": false, "error": "unauthorized", "message": "Invalid API key." }
+```
+
+**原因:** `Authorization: Bearer <ZapFetch API key>` 请求头缺失、格式
+错误,或引用的 Key 不存在 / 已被撤销。
+
+**处理:**
+- 确认 Key 是从 **Dashboard → API keys** 复制的 UUID 格式 ZapFetch Key
+  (不是 Firecrawl Cloud 的 Key)。
+- 去 **Dashboard → API keys** 看 Key 是否被撤销。
+- 确保请求打到 `api.zapfetch.com`,不是老的域名。
+
+## 402 — Payment Required
+
+```json
+{
+  "success": false,
+  "error": "insufficient_credits",
+  "message": "Your credit balance is 0. Upgrade or top up."
+}
+```
+
+**原因:** 当月套餐 credits 用完了。
+
+**处理:** 在 [Billing 页面](https://console.zapfetch.com/dashboard/billing)
+充值或升级套餐。进行中的 crawl 会跑完已派发的页面,但新请求会被
+拦住直到额度补上。
+
+## 404 — Not Found
+
+```json
+{ "success": false, "error": "not_found", "message": "Crawl job abc123 not found." }
+```
+
+**原因:** 资源(比如 crawl job)在你的账号下不存在,或已被回收
+(crawl 结果保留 30 天)。
+
+**处理:** 核对 id 和所有者;如果结果过期了就重跑一次 crawl。
+
+## 429 — Too Many Requests
+
+完整处理方式见 [限流](/zh/rate-limits)。请始终遵从 `Retry-After`
+响应头。
+
+## 500 — Internal Server Error
+
+```json
+{ "success": false, "error": "internal_error", "message": "Unexpected failure. Please retry." }
+```
+
+**原因:** ZapFetch 自身问题,或抓取目标页面时的瞬时上游失败。
+
+**处理:**
+- 带退避重试一次;大多数 500 是瞬时的。
+- 如果某个特定 URL 持续 500,目标站点可能在主动反爬虫——试试
+  请求里开 `stealth` / 换 user agent。
+- 如果整个端点持续失败,去
+  [status.zapfetch.com](https://status.zapfetch.com) 看并反馈给我们。
+
+## 排查建议
+
+- **打印完整响应信封** —— `error` + `message` 一般直接告诉你到底哪里
+  错了。把每个失败都当成通用网络错误会遮蔽真正原因。
+- **先用 curl 复现。** curl 挂了说明是后端 / Key 问题;只有你的 SDK
+  挂说明是客户端集成问题。
+- **查 Console 的 Usage 页。** 成功调用的骤降往往是额度或限流问题,
+  不一定是纯 bug。

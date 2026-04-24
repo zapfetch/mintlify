@@ -68,7 +68,7 @@
               {
                 "group": "参考",
                 "icon": "book-open",
-                "pages": ["zh/billing"]
+                "pages": ["zh/billing", "zh/rate-limits", "zh/errors"]
               }
             ]
           }
