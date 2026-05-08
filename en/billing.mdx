@@ -55,17 +55,6 @@ or rollover credits, email `sales@zapfetch.com`.
   standard rate (**$10** and **$25** respectively). Still cheaper than
   the nearest comparable plan on Firecrawl.
 
-### Annual and program discounts
-
-| Program                       | Discount                          |
-| ----------------------------- | --------------------------------- |
-| Annual prepay                 | 15% off any paid plan             |
-| OSS maintainers (≥500 ★ repo) | Pro free for 12 months            |
-| Students (`.edu` email)       | Pro free for 12 months            |
-| Registered nonprofits         | 50% off annual                    |
-
-Email `support@zapfetch.com` with proof and we'll apply it.
-
 ## Credit usage in responses
 
 Every successful response carries a credit-usage chunk — the same shape
@@ -93,30 +82,11 @@ strictly one-by-one.
 - In-flight crawls finish the pages already dispatched; no new pages are
   scheduled once the balance is exhausted.
 - No silent overage. You'll never get a surprise bill — ZapFetch refuses
-  to run above your cap unless you've explicitly opted into overage.
+  to run above your cap, full stop. Once you hit zero, requests return
+  `402` until the next monthly reset or a manual top-up.
 
-### Opt-in overage (Starter and up)
-
-If you'd rather keep serving traffic past the cap than return `402`, turn
-on overage in Billing. You'll be billed per 1,000 extra credits at a
-flat rate that depends on your plan (Pro's per-credit rate is lower
-than Starter's). A soft cap triggers a warning email; a hard cap (2×
-soft) pauses billing so a runaway loop can't drain your card.
-
-Free plan has no overage — runaway traffic hits `429` until the next
-month.
-
-## Add-ons (optional)
-
-Add-ons are separate SKUs that stack on top of the Pro plan.
-
-- **APAC Residential Proxy** — JP / KR / CN / SG / TW residential IPs
-  for sites that block datacenter ranges (Rakuten, Naver, 1688, etc.)
-- **CJK Extract Model** — Pretrained extractor for Chinese / Japanese /
-  Korean e-commerce and news
-
-See the [pricing page](https://zapfetch.com/pricing) for add-on rates, or email
-`sales@zapfetch.com` for a quote.
+If you need a larger committed cap or custom billing terms, email
+`sales@zapfetch.com`.
 
 ## Tracking usage
 
