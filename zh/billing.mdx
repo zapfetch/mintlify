@@ -49,17 +49,6 @@ Credits 按月续期,不滚存。需要更大额度或滚存,发邮件到 `sales
 - **Starter / Pro** 在 2027-04-20 之后的新用户按正式期价格结算
   (分别为 **$10** 和 **$25**),依然比 Firecrawl 同层便宜。
 
-### 年付与计划折扣
-
-| 计划                              | 折扣                         |
-| --------------------------------- | ---------------------------- |
-| 年付预付                          | 任何付费套餐 **85 折**       |
-| OSS 维护者(≥500 ★ 项目)         | Pro 免费 12 个月             |
-| 学生(`.edu` 邮箱)               | Pro 免费 12 个月             |
-| 注册非营利组织                    | 年费 **5 折**                |
-
-发邮件到 `support@zapfetch.com` 附上证明,我们会帮你开通。
-
 ## 响应中的 Credit 消耗
 
 每个成功响应都带一个 credit-usage 字段——shape 与 Firecrawl 一致,现有
@@ -82,28 +71,10 @@ Credits 按月续期,不滚存。需要更大额度或滚存,发邮件到 `sales
 - 当 `remainingCredits` 为零,后续请求返回 **`402 Payment Required`**,
   错误消息指向 [console.zapfetch.com/dashboard/billing](https://console.zapfetch.com/dashboard/billing)。
 - 进行中的 crawl 会完成已派发的页面,但不会再调度新页面。
-- 不会悄悄超额。除非你主动开启 overage,ZapFetch 不会在余额耗尽后
-  继续计费——不会有意外账单。
+- 不会悄悄超额。ZapFetch 在余额耗尽后**直接停**——不会有意外账单。
+  到零之后,请求返回 `402`,直到下月重置或手动充值。
 
-### 可选 Overage(Starter 及以上)
-
-如果你宁愿超额继续服务、也不想收到 `402`,可以在 Billing 里开启
-overage。按每 1,000 个超额 credit 计费,单价由套餐决定(Pro 比
-Starter 的单 credit 单价更低)。Soft cap 触发邮件告警;Hard cap
-(= Soft × 2)停止计费,防止失控循环把你的信用卡刷爆。
-
-Free 套餐不提供 overage——流量超出直接返 `429`,等下个月。
-
-## Add-ons(可选)
-
-Add-ons 是独立 SKU,可叠加在 Pro 套餐上。
-
-- **APAC 住宅代理** —— 日 / 韩 / 中 / 新 / 台住宅 IP,绕过封锁数据
-  中心段的站点(乐天、Naver、1688 等)
-- **CJK 提取模型** —— 针对中日韩电商和新闻训练的专用提取器
-
-详细价格见 [pricing 页面](https://zapfetch.com/pricing),或发邮件到 `sales@zapfetch.com`
-询价。
+如果需要更大的承诺额度或自定义计费条款,发邮件到 `sales@zapfetch.com`。
 
 ## 查看用量
 
