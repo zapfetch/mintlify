@@ -2,7 +2,7 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
   "name": "ZapFetch",
-  "description": "APAC-native web scraping API for AI agents — scrape, search, crawl, extract. Firecrawl-compatible.",
+  "description": "Firecrawl alternative — APAC-native web scraping API for AI agents. Wire-compatible /v1 and /v2, USD billing, Singapore-hosted.",
   "colors": {
     "primary": "#F59E0B",
     "light": "#FBBF24",
@@ -23,6 +23,7 @@
                 "icon": "rocket",
                 "pages": [
                   "en/index",
+                  "en/migrate-from-firecrawl",
                   {
                     "group": "Quickstart",
                     "pages": [
@@ -30,8 +31,7 @@
                       "en/quickstart/python",
                       "en/quickstart/nodejs"
                     ]
-                  },
-                  "en/migrate-from-firecrawl"
+                  }
                 ]
               },
               {
@@ -54,6 +54,7 @@
                 "icon": "rocket",
                 "pages": [
                   "zh/index",
+                  "zh/migrate-from-firecrawl",
                   {
                     "group": "快速开始",
                     "pages": [
@@ -61,8 +62,7 @@
                       "zh/quickstart/python",
                       "zh/quickstart/nodejs"
                     ]
-                  },
-                  "zh/migrate-from-firecrawl"
+                  }
                 ]
               },
               {
@@ -119,6 +119,9 @@
   "redirects": [
     { "source": "/reference/billing", "destination": "/en/billing", "permanent": true },
     { "source": "/reference/rate-limits", "destination": "/en/rate-limits", "permanent": true },
-    { "source": "/reference/errors", "destination": "/en/errors", "permanent": true }
+    { "source": "/reference/errors", "destination": "/en/errors", "permanent": true },
+    { "source": "/firecrawl-alternative", "destination": "/en/migrate-from-firecrawl", "permanent": true },
+    { "source": "/migrate", "destination": "/en/migrate-from-firecrawl", "permanent": true },
+    { "source": "/zh/firecrawl-alternative", "destination": "/zh/migrate-from-firecrawl", "permanent": true }
   ]
 }

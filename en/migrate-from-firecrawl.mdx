@@ -1,11 +1,37 @@
 ---
-title: "Migrating from Firecrawl Cloud to ZapFetch in under 10 minutes"
-description: "Swap base URL, swap the API key, ship. A three-step migration path for Firecrawl Cloud users."
+title: "Firecrawl Alternative: Migrate to ZapFetch in 10 Minutes"
+sidebarTitle: "Migrate from Firecrawl"
+description: "Drop-in Firecrawl alternative. Wire-compatible /v1 and /v2 endpoints, USD credit billing, Singapore-hosted. Swap base URL and API key — no client refactor, no SDK swap."
+keywords:
+  - firecrawl alternative
+  - firecrawl migration
+  - migrate from firecrawl
+  - firecrawl-compatible api
+  - web scraping api for ai agents
+  - apac web scraping
 ---
 
 If you're already running against Firecrawl Cloud (`api.firecrawl.dev`),
-migrating to ZapFetch takes three changes and no code refactoring. ZapFetch
-is wire-compatible with both the `/v1/*` and `/v2/*` Firecrawl endpoints.
+ZapFetch is a drop-in replacement: change one base URL, swap the API key,
+ship. No code refactor, no new SDK to learn, no schema migration.
+ZapFetch is wire-compatible with both the `/v1/*` and `/v2/*` Firecrawl
+endpoints.
+
+## ZapFetch vs Firecrawl Cloud at a glance
+
+| | Firecrawl Cloud | ZapFetch |
+| --- | --- | --- |
+| API surface | `/v1`, `/v2` | `/v1`, `/v2` (wire-compatible) |
+| SDKs | `firecrawl-py`, `@mendable/firecrawl-js` | **Same SDKs** — only `api_url` changes |
+| Billing | USD, monthly minimums | USD, no minimums, no commits |
+| Edge region | US-east default | **Singapore-hosted, APAC-native** |
+| Format multipliers | Markdown + HTML + screenshot = multiple charges | All formats included in **1 credit** |
+| Failed requests | Charged | **Free** — 4xx, 5xx, timeouts, robots.txt denials |
+| Crawl billing | Per page dispatched | Per page **successfully fetched** |
+| Lock-in | Vendor SDK only | Standard `firecrawl-*` SDKs — no lock-in |
+
+The migration is three changes — base URL, key, optional client config — and
+takes under ten minutes for most apps.
 
 ## Why migrate?
 
@@ -15,6 +41,9 @@ is wire-compatible with both the `/v1/*` and `/v2/*` Firecrawl endpoints.
   `@mendable/firecrawl-js`. No vendor-specific client, no lock-in.
 - **Both v1 and v2 endpoints supported.** Whichever version your current
   Firecrawl SDK talks, ZapFetch accepts it — no pinning required.
+- **APAC-native edge.** Singapore-hosted API means lower latency for
+  scraping `.jp`, `.kr`, `.cn`, `.tw`, `.sg` targets, and fewer
+  geo-blocks on regional sites.
 
 ## Step 1 — Get a ZapFetch API key
 
@@ -89,27 +118,87 @@ curl -X POST https://api.zapfetch.com/v1/scrape \
 Expected: HTTP 200 with a `data.markdown` field, and a credit-usage chunk
 in the response envelope.
 
+## Run both in parallel during cutover
+
+Your Firecrawl Cloud key keeps working on `api.firecrawl.dev`, and your
+ZapFetch key works on `api.zapfetch.com`. Migrate traffic gradually — for
+example, route 10% of scrapes to ZapFetch, compare success rates and
+markdown output for a day, then ramp up. There's no commitment to delete
+the Firecrawl account; both keys stay live.
+
 ## FAQ
 
-### Feature parity
+### Is ZapFetch a true drop-in for Firecrawl?
 
-Both `/v1/*` and `/v2/*` endpoints — `scrape`, `crawl`, `search`, `map`,
-`extract` — are fully supported. Request and response schemas match. If you
-hit a behavioral difference, it is a bug — file it on the Console.
+Yes for the Cloud API surface. Both `/v1/*` and `/v2/*` endpoints —
+`scrape`, `crawl`, `search`, `map`, `extract` — are supported with
+matching request and response schemas. Existing client code that reads
+`creditsUsed` and `remainingCredits` from response envelopes works
+unchanged. If you hit a behavioral difference, it is a bug — file it on
+the Console.
 
-### Pricing
+### How does pricing compare?
 
-ZapFetch is credit-based in USD. The current plans are outlined on
-[Billing](/en/billing) and on the pricing page. Pricing is subject to
-change; the source of truth is `console.zapfetch.com/dashboard/billing`.
+ZapFetch is credit-based in USD. Failures are free, format multipliers
+don't exist, and crawl is billed per **successfully fetched** page (not
+per dispatched page). Current plans are outlined on
+[Billing](/en/billing); the source of truth for your subscription is
+`console.zapfetch.com/dashboard/billing`.
 
-### Rate limits
+### What about rate limits?
 
-See [Rate limits](/en/rate-limits). Defaults are generous for Free and
-scale with paid plans. `429` responses include `Retry-After`.
+See [Rate limits](/en/rate-limits). Defaults are generous on Free and
+scale with paid plans. `429` responses include `Retry-After` so existing
+SDK retry logic works without changes.
 
-### Can I run both in parallel?
+### Can I run both Firecrawl and ZapFetch simultaneously?
 
-Yes — your Firecrawl Cloud key keeps working on `api.firecrawl.dev`, and
-your ZapFetch key works on `api.zapfetch.com`. Migrate traffic gradually
-if you prefer.
+Yes — they're fully independent. Two keys, two base URLs, no
+cross-account billing. Most teams cut over an endpoint at a time and
+keep Firecrawl as a fallback for a billing cycle.
+
+### Why is ZapFetch faster for APAC targets?
+
+The API edge sits in Singapore, so traffic to `.jp`, `.kr`, `.cn`,
+`.tw`, `.sg` domains traverses one regional hop instead of round-tripping
+through US-east. The improvement compounds on crawls of e-commerce sites
+that lazy-load over many requests.
+
+<script type="application/ld+json">{`{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is ZapFetch a true drop-in for Firecrawl?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Both /v1 and /v2 endpoints — scrape, crawl, search, map, extract — are supported with matching request and response schemas. Existing client code that reads creditsUsed and remainingCredits works unchanged."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How does ZapFetch pricing compare to Firecrawl?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "ZapFetch is credit-based in USD. Failures are free, there are no format multipliers, and crawl is billed per successfully fetched page rather than per dispatched page."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I run Firecrawl and ZapFetch in parallel?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Both keys and base URLs are fully independent — most teams cut over one endpoint at a time and keep Firecrawl as a fallback during the billing cycle."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Why is ZapFetch faster for APAC targets?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The API edge is Singapore-hosted, so traffic to .jp, .kr, .cn, .tw, .sg domains takes one regional hop instead of round-tripping through US-east. The improvement compounds on crawls of e-commerce sites with many lazy-loaded requests."
+      }
+    }
+  ]
+}`}</script>

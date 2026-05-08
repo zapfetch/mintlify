@@ -1,20 +1,47 @@
 ---
-title: "10 分钟从 Firecrawl Cloud 迁移到 ZapFetch"
-description: "换域名、换 Key、上线——三步迁移指南，针对 Firecrawl Cloud 老用户。"
+title: "Firecrawl 替代品：10 分钟从 Firecrawl Cloud 迁移到 ZapFetch"
+sidebarTitle: "从 Firecrawl 迁移"
+description: "Firecrawl 的直接替代品。/v1 和 /v2 端点字节级兼容、按 credit 美元计费、新加坡节点。换 Base URL + 换 Key，10 分钟搞定，不用重构客户端。"
+keywords:
+  - Firecrawl 替代品
+  - Firecrawl 迁移
+  - 从 Firecrawl 切换
+  - Firecrawl 兼容 API
+  - AI Agent 网页抓取 API
+  - 亚太网页抓取
+  - APAC web scraping
 ---
 
 如果你现在跑在 Firecrawl Cloud（`api.firecrawl.dev`）上，迁移到 ZapFetch
-只需要改三个地方，**不需要重构任何业务代码**。ZapFetch 与 Firecrawl 的
-`/v1/*` 和 `/v2/*` 端点做到了字节级兼容。
+是**直接替换**：换一个 Base URL、换一个 API Key，上线。**不需要重构任
+何业务代码**，**不需要换 SDK**，**不需要改 schema**。ZapFetch 与 Firecrawl
+的 `/v1/*` 和 `/v2/*` 端点做到了字节级兼容。
+
+## ZapFetch vs Firecrawl Cloud 对比
+
+| | Firecrawl Cloud | ZapFetch |
+| --- | --- | --- |
+| API 端点 | `/v1`、`/v2` | `/v1`、`/v2`（字节级兼容） |
+| SDK | `firecrawl-py`、`@mendable/firecrawl-js` | **沿用同一套 SDK**——只改 `api_url` |
+| 计费 | 美元、有起订量 | 美元、**无起订量、无承诺消费** |
+| 边缘节点 | 默认 US-east | **新加坡节点**，亚太原生 |
+| 格式倍率 | Markdown + HTML + 截图 = 多次扣费 | 所有格式包含在 **1 credit** 里 |
+| 失败请求 | 计费 | **免费**——4xx、5xx、超时、robots.txt 拦截 |
+| Crawl 计费 | 按已下发页数 | 按**成功抓取**的页数 |
+| 厂商锁定 | 必须用厂商 SDK | 沿用 `firecrawl-*` 标准 SDK，**零锁定** |
+
+迁移共三步——Base URL、Key、可选的 client 配置——大多数应用 10 分钟内完成。
 
 ## 为什么迁？
 
-- **美元计费，按用量结算。** 按 credit 计量，无起订量、无承诺消费，用
-  多少算多少；剩余额度会写在每次响应里。
+- **美元计费，按用量结算。** 无起订量、无承诺消费，用多少算多少；剩余
+  额度会写在每次响应里。
 - **SDK、Schema 都不变。** 继续用官方的 `firecrawl-py` 和
   `@mendable/firecrawl-js`，不锁定厂商，也不需要学新 SDK。
 - **v1 与 v2 端点都兼容。** 不论你现有 SDK 用的是哪个版本，直接切过来
   就能跑。
+- **亚太原生节点。** API 部署在新加坡，抓取 `.jp`、`.kr`、`.cn`、`.tw`、
+  `.sg` 等域名的延迟更低，且较少触发地域屏蔽。
 
 ## 第一步 — 拿到 ZapFetch API Key
 
@@ -86,20 +113,80 @@ curl -X POST https://api.zapfetch.com/v1/scrape \
 
 预期：HTTP 200 + `data.markdown` + 剩余额度信息。
 
+## 切流期间双跑
+
+两边的 Key 互不干扰，可以同时跑——ZapFetch Key 走 `api.zapfetch.com`，
+Firecrawl Key 继续走 `api.firecrawl.dev`。建议按比例切流：先把 10% 流量
+打到 ZapFetch，对比一两天的成功率和 markdown 输出，再逐步加大比例。
+没有强制注销 Firecrawl 账号的要求，可以保留一个计费周期作为兜底。
+
 ## 常见问题
 
-### 两边的端点一一对应吗？
+### ZapFetch 是真的"直接替换"Firecrawl 吗？
 
-对应。`/v1/*` 和 `/v2/*` 全部支持——`scrape`、`crawl`、`search`、
-`map`、`extract` 端点请求体和响应体结构一致。如果发现行为差异，当 Bug
-反馈即可。
+针对 Firecrawl Cloud 的 API 是的。`/v1/*` 和 `/v2/*` 全部端点——
+`scrape`、`crawl`、`search`、`map`、`extract`——请求和响应 schema 一一
+对应。现有读 `creditsUsed`、`remainingCredits` 的客户端代码无需改动。
+如果发现行为差异，当 Bug 反馈即可。
 
-### 价格和限流？
+### 价格对比怎么样？
 
-- 计费：见 Console 里的 Billing 页面，美元结算。
-- 限流：见英文文档的 [Rate limits](/en/rate-limits)，按计划不同有
-  每分钟请求上限，超限返回 `429 + Retry-After`。
+ZapFetch 美元 credit 计费。失败免费、无格式倍率、Crawl **按成功抓取
+的页数计费**（不是下发页数）。当前计划见 [Billing](/zh/billing)；订阅
+权威数据在 `console.zapfetch.com/dashboard/billing`。
+
+### 限流呢？
+
+见 [Rate limits](/en/rate-limits)（中文版规划中）。Free 计划默认配额
+够大，付费计划等比放大。`429` 响应带 `Retry-After`，现有 SDK 的重试
+逻辑无需改动。
 
 ### 可以两边并行跑吗？
 
-可以。两个 Key 互不影响，可以按流量比例逐步切过来再下线 Firecrawl。
+可以。两个 Key、两个 Base URL 完全独立。多数团队按端点切流——一次切一
+个，留 Firecrawl 兜底一个计费周期。
+
+### 为什么 ZapFetch 抓亚太站点更快？
+
+API 边缘在新加坡，抓 `.jp`、`.kr`、`.cn`、`.tw`、`.sg` 域名只走一跳
+区域内路由，不必绕回 US-east。在懒加载多请求的电商站点 Crawl 上，这
+个延迟优势会被放大。
+
+<script type="application/ld+json">{`{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "ZapFetch 是真的直接替换 Firecrawl 吗?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "是的。/v1 和 /v2 全部端点 — scrape、crawl、search、map、extract — 请求和响应 schema 一一对应。现有读 creditsUsed、remainingCredits 的客户端代码无需改动。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "ZapFetch 价格相比 Firecrawl 如何?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "ZapFetch 美元 credit 计费。失败免费、无格式倍率、Crawl 按成功抓取页数计费,不是下发页数。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "可以同时跑 Firecrawl 和 ZapFetch 吗?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "可以。两个 Key、两个 Base URL 完全独立,多数团队按端点切流,一次切一个,留 Firecrawl 兜底一个计费周期。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "为什么 ZapFetch 抓亚太站点更快?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "API 边缘在新加坡,抓 .jp、.kr、.cn、.tw、.sg 域名只走一跳区域内路由,不必绕回 US-east。"
+      }
+    }
+  ]
+}`}</script>
